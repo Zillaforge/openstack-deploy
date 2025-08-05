@@ -3,7 +3,7 @@ export HOME=$(eval echo ~$SUDO_USER)
 GREEN="\e[32m"
 ENDCOLOR="\e[0m"
 export NIC=$(ip -o -4 route show to default | awk '{print $5}')
-export ADDR=$(ip -o -4 route show to default | awk '{print $9}')
+export ADDR=$(ip -o -4 addr show dev $NIC | awk '$3 == "inet" {print $4}' | cut -d/ -f1)
 echo -e "${GREEN} Find unuse IP for Haproxy VIP ${ENDCOLOR}"
 for ip in 192.168.0.{200..254}; do
   ping -c1 -W1 $ip &> /dev/null

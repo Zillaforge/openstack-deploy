@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Get default IP from current route
-default_ip=$(ip -o -4 route show to default | awk '{print $9}')
+default_ip=$(ip -o -4 addr show $(ip -o -4 route show to default | awk '{print $5}') | awk '{print $4}' | cut -d/ -f1)
 default_user="test@trusted-cloud.nchc.org.tw"
 default_password="password123"
 # Prompt with default

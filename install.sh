@@ -5,10 +5,21 @@ ENDCOLOR="\e[0m"
 export NIC=$(ip -o -4 route show to default | awk '{print $5}')
 export ADDR=$(ip -o -4 addr show dev $NIC | awk '$3 == "inet" {print $4}' | cut -d/ -f1)
 echo -e "${GREEN} Find unuse IP for Haproxy VIP ${ENDCOLOR}"
-for ip in 192.168.0.{200..254}; do
-  ping -c1 -W1 $ip &> /dev/null
+
+sudo apt update -y
+sudo apt install ipcalc -y
+
+CIDR=$(ip -o -4 addr show dev $NIC | awk '$3 == "inet" {print $4}')
+NETWORK=$(ipcalc -n -b $CIDR | grep Network | awk '{print $2}')
+BROADCAST=$(ipcalc -n -b $CIDR | grep Broadcast | awk '{print $2}')
+IFS='.' read -r i1 i2 i3 i4 <<< "${NETWORK%/*}"
+IFS='.' read -r b1 b2 b3 b4 <<< "$BROADCAST"
+for ip in $(seq $((i4+1)) $((b4-1))); do
+  candidate="$i1.$i2.$i3.$ip"
+  echo "Checking IP: $candidate"
+  ping -c1 -W1 $candidate &> /dev/null
   if [ $? -ne 0 ]; then
-    VIP=$ip
+    VIP=$candidate
     echo -e "${GREEN} found unuse ip address:  $VIP ${ENDCOLOR}"
     break
   fi

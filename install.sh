@@ -126,7 +126,10 @@ echo -e "${GREEN} Check if openstack is accessible ${ENDCOLOR}"
 bash ./scripts/openstack_health_check.sh 
 
 while true; do
-    read -p "Do you want to set up Keystone LDAP? (y/n): " answer
+    read -t 30 -p "Do you want to set up Keystone LDAP? (y/n): " answer
+    if [ -z "$answer" ]; then
+        answer="y"
+    fi
     case "$answer" in
         [Yy]* )
             echo "Setting up Keystone LDAP..."

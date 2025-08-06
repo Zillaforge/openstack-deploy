@@ -5,10 +5,13 @@ default_ip=$(ip -o -4 addr show $(ip -o -4 route show to default | awk '{print $
 default_user="test@trusted-cloud.nchc.org.tw"
 default_password="password123"
 # Prompt with default
-read -p "Enter ldap server IP address (default ldap ip addr: [${default_ip}]): " allowed_ip
+read -t 30 -p "Enter ldap server IP address (default ldap ip addr: [${default_ip}]): " allowed_ip
 allowed_ip=${allowed_ip:-$default_ip}
-read -p "Enter ldap user (default ldap user: [${default_user}]): " ldap_user
-read -p "Enter ldap password (default ldap password: [${default_password}]): " ldap_password
+echo ""
+read -t 30 -p "Enter ldap user (default ldap user: [${default_user}]): " ldap_user
+echo ""
+read -t 30 -p "Enter ldap password (default ldap password: [${default_password}]): " ldap_password
+echo ""
 
 echo "User: ${ldap_user:-$default_user}"
 cat << EOF > $HOME/keystone.trustedcloud.conf

@@ -5,9 +5,6 @@ ENDCOLOR="\e[0m"
 export NIC=$(ip -o -4 route show to default | awk '{print $5}')
 export ADDR=$(ip -o -4 addr show dev $NIC | awk '$3 == "inet" {print $4}' | cut -d/ -f1)
 
-# Get IP configuration
-export HOSTIP=$(curl -s ipinfo.io/ip)
-export HOSTIP_DASH=$(echo "$HOSTIP" | sed 's/\./-/g')
 
 echo -e "${GREEN} Find unuse IP for Haproxy VIP ${ENDCOLOR}"
 
@@ -95,7 +92,6 @@ sed -i 's|^#enable_cinder_backup: "yes"$|enable_cinder_backup: "no"|' /etc/kolla
 sed -i 's|^#enable_cinder_backend_nfs: "no"$|enable_cinder_backend_nfs: "yes"|' /etc/kolla/globals.yml
 sed -i 's|^#enable_cinder: "no"$|enable_cinder: "yes"|' /etc/kolla/globals.yml
 sed -i 's|^#enable_neutron_provider_networks: "no"$|enable_neutron_provider_networks: "yes"|' /etc/kolla/globals.yml
-sed -i "s/^#\?kolla_external_fqdn: .*/kolla_external_fqdn: \"${HOSTIP_DASH}.nip.io\"/" /etc/kolla/globals.yml
 echo "run bootstrap script"
 kolla-ansible bootstrap-server -i $HOME/all-in-one 
 echo "deploy nfs-server "
@@ -114,6 +110,14 @@ EOF
 echo -e "${GREEN} run install script kolla_deploy.sh ${ENDCOLOR}"
 sudo chmod 755 ./kolla_deploy.sh
 bash ./kolla_deploy.sh
+
+echo -e "${GREEN} Reconfig kolla-openstack for novnc external access ${ENDCOLOR}"
+# Get IP configuration
+export HOSTIP=$(curl -s ipinfo.io/ip)
+export HOSTIP_DASH=$(echo "$HOSTIP" | sed 's/\./-/g')
+sed -i "s/^#\?kolla_external_fqdn: .*/kolla_external_fqdn: \"${HOSTIP_DASH}.nip.io\"/" /etc/kolla/globals.yml
+kolla-ansible reconfig -i $HOME/all-in-one --tags nova
+
 
 echo -e "${GREEN} Deploy kolla-openstack complete ${ENDCOLOR}"
 

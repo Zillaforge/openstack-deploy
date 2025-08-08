@@ -128,7 +128,7 @@ bash ./scripts/openstack_health_check.sh
 while true; do
     read -t 30 -p "Do you want to set up Keystone LDAP? (y/n): " answer
     if [ -z "$answer" ]; then
-        answer="y"
+        answer="n"
     fi
     case "$answer" in
         [Yy]* )

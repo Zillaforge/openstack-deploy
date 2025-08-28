@@ -38,10 +38,10 @@ echo -e "${GREEN} setup docker ${ENDCOLOR}"
 ./scripts/docker_setup.sh
 
 echo -e "${GREEN} install python package ${ENDCOLOR}"
-pip install  'ansible-core>=2.15,<2.16.99'
+pip install  'ansible-core>=2.16,<2.17.99'
 pip install  dbus-python
 pip install  docker
-pip install   git+https://opendev.org/openstack/kolla-ansible@stable/2024.1
+pip install   git+https://opendev.org/openstack/kolla-ansible@stable/2025.1
 
 echo -e "${GREEN} install kolla-ansible dependencies ${ENDCOLOR}"
 kolla-ansible install-deps
@@ -116,12 +116,12 @@ echo -e "${GREEN} run install script kolla_deploy.sh ${ENDCOLOR}"
 sudo chmod 755 ./kolla_deploy.sh
 bash ./kolla_deploy.sh
 
-echo -e "${GREEN} Reconfig kolla-openstack for novnc external access ${ENDCOLOR}"
+# echo -e "${GREEN} Reconfig kolla-openstack for novnc external access ${ENDCOLOR}"
 # Get IP configuration
-export HOSTIP=$(curl -s ipinfo.io/ip)
-export HOSTIP_DASH=$(echo "$HOSTIP" | sed 's/\./-/g')
-sed -i "s/^#\?kolla_external_fqdn: .*/kolla_external_fqdn: \"${HOSTIP_DASH}.nip.io\"/" /etc/kolla/globals.yml
-kolla-ansible reconfig -i $HOME/all-in-one --tags nova
+# export HOSTIP=$(curl -s ipinfo.io/ip)
+# export HOSTIP_DASH=$(echo "$HOSTIP" | sed 's/\./-/g')
+# sed -i "s/^#\?kolla_external_fqdn: .*/kolla_external_fqdn: \"${HOSTIP_DASH}.nip.io\"/" /etc/kolla/globals.yml
+# kolla-ansible reconfig -i $HOME/all-in-one --tags nova
 
 
 echo -e "${GREEN} Deploy kolla-openstack complete ${ENDCOLOR}"

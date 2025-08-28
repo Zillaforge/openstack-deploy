@@ -36,11 +36,13 @@ python3 -m venv $HOME/venv
 source $HOME/venv/bin/activate
 echo -e "${GREEN} setup docker ${ENDCOLOR}"
 ./scripts/docker_setup.sh
+
 echo -e "${GREEN} install python package ${ENDCOLOR}"
-pip install  'ansible-core>=2.16,<2.17.99'
+pip install  'ansible-core>=2.15,<2.16.99'
 pip install  dbus-python
 pip install  docker
-pip install   git+https://opendev.org/openstack/kolla-ansible@master
+pip install   git+https://opendev.org/openstack/kolla-ansible@stable/2024.1
+
 echo -e "${GREEN} install kolla-ansible dependencies ${ENDCOLOR}"
 kolla-ansible install-deps
 echo -e "${GREEN} copy config to /etc/kolla ${ENDCOLOR}"

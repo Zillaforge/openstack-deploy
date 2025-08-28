@@ -56,10 +56,13 @@ echo -e "${GREEN} generate password ${ENDCOLOR}"
 kolla-genpwd
 
 echo -e "${GREEN} create fake interface for openstack external network ${ENDCOLOR}"
-sudo ip link add dummy1 type dummy
-sudo ip link set dummy1 arp on
-sudo ip address add 10.0.2.2/24 broadcast + dev dummy1
+sudo ip link add dummy1 type bridge
 sudo ip link set dummy1 up
+sudo ip addr add 10.0.2.2/24 dev dummy1
+sudo ip link add veth-ovs type veth peer name veth-br
+sudo ip link set veth-br master dummy1
+sudo ip link set veth-ovs up
+sudo ip link set veth-br up
 
 echo -e "${GREEN} generate ml2_conf.ini ${ENDCOLOR}"
 bash ./config/ml2_conf.sh
@@ -86,7 +89,7 @@ echo "enable service in global.yml"
 sed -i "s|^#network_interface: \"eth0\"$|network_interface: \"$NIC\"|" /etc/kolla/globals.yml
 sed -i "s|^#kolla_internal_vip_address: \"10.10.10.254\"$|kolla_internal_vip_address:  \"$VIP\"|" /etc/kolla/globals.yml
 sed -i 's|^#kolla_base_distro: "rocky"$|kolla_base_distro: "ubuntu"|' /etc/kolla/globals.yml
-sed -i 's|^#neutron_external_interface: "eth1"$|neutron_external_interface: "dummy1"|' /etc/kolla/globals.yml
+sed -i 's|^#neutron_external_interface: "eth1"$|neutron_external_interface: "veth-ovs"|' /etc/kolla/globals.yml
 sed -i 's|^#neutron_plugin_agent: "openvswitch"$|neutron_plugin_agent: "ovn"|' /etc/kolla/globals.yml
 sed -i 's|^#enable_cinder_backup: "yes"$|enable_cinder_backup: "no"|' /etc/kolla/globals.yml
 sed -i 's|^#enable_cinder_backend_nfs: "no"$|enable_cinder_backend_nfs: "yes"|' /etc/kolla/globals.yml

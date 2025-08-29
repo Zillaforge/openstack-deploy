@@ -1,7 +1,8 @@
-FROM alpine:latest
+FROM ubuntu:24.04
 
+RUN apt update && apt install -y git iproute2 wget sudo
 
-RUN apk add zsh-vcs
+# RUN apk add zsh-vcs
 
 RUN sh -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/download/v1.2.1/zsh-in-docker.sh)" -- \
     -t agnoster \

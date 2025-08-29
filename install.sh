@@ -16,16 +16,54 @@ NETWORK=$(ipcalc -n -b $CIDR | grep Network | awk '{print $2}')
 BROADCAST=$(ipcalc -n -b $CIDR | grep Broadcast | awk '{print $2}')
 IFS='.' read -r i1 i2 i3 i4 <<< "${NETWORK%/*}"
 IFS='.' read -r b1 b2 b3 b4 <<< "$BROADCAST"
+
+# 建立可用 IP 範圍陣列並隨機打亂順序
+available_ips=()
 for ip in $(seq $((i4+1)) $((b4-1))); do
+  available_ips+=($ip)
+done
+
+# 使用 shuf 隨機打亂陣列（如果沒有 shuf，則用 sort -R）
+if command -v shuf >/dev/null 2>&1; then
+  randomized_ips=($(printf '%s\n' "${available_ips[@]}" | shuf))
+else
+  randomized_ips=($(printf '%s\n' "${available_ips[@]}" | sort -R))
+fi
+
+echo $randomized_ips
+
+# 隨機檢查 IP
+for ip in "${randomized_ips[@]}"; do
   candidate="$i1.$i2.$i3.$ip"
   echo "Checking IP: $candidate"
   ping -c1 -W1 $candidate &> /dev/null
   if [ $? -ne 0 ]; then
-    VIP=$candidate
-    echo -e "${GREEN} found unuse ip address:  $VIP ${ENDCOLOR}"
-    break
+    echo -e "${GREEN} found unused ip address: $candidate ${ENDCOLOR}"
+    while true; do
+      read -p "Do you want to use $candidate as VIP? (y/n): " answer
+      case "$answer" in
+        [Yy]* )
+          VIP=$candidate
+          echo -e "${GREEN} Using VIP: $VIP ${ENDCOLOR}"
+          break 2
+          ;;
+        [Nn]* )
+          echo "Skipping $candidate, looking for next available IP..."
+          break
+          ;;
+        * )
+          echo "Invalid input. Please enter 'y' or 'n'."
+          ;;
+      esac
+    done
   fi
 done
+
+# 檢查是否找到並確認了 VIP
+if [ -z "$VIP" ]; then
+  echo -e "\e[31mNo VIP was selected or no available IP found. Exiting.\e[0m"
+  exit 1
+fi
 
 echo -e "${GREEN} install necessery package ${ENDCOLOR}"
 sudo apt update -y

@@ -5,13 +5,25 @@ default_ip=$(ip -o -4 addr show $(ip -o -4 route show to default | awk '{print $
 default_user="test@trusted-cloud.nchc.org.tw"
 default_password="password123"
 # Prompt with default
-read -t 30 -p "Enter ldap server IP address (default ldap ip addr: [${default_ip}]): " allowed_ip
-allowed_ip=${allowed_ip:-$default_ip}
-echo ""
-read -t 30 -p "Enter ldap user (default ldap user: [${default_user}]): " ldap_user
-echo ""
-read -t 30 -p "Enter ldap password (default ldap password: [${default_password}]): " ldap_password
-echo ""
+if [ "$ENABLE_AUTO_DEPLOY_MODE" = "true" ]; then
+    # 自動模式：最多等30秒，超時使用預設值
+    read -t 30 -p "Enter ldap server IP address (default ldap ip addr: [${default_ip}]): " allowed_ip
+    allowed_ip=${allowed_ip:-$default_ip}
+    echo ""
+    read -t 30 -p "Enter ldap user (default ldap user: [${default_user}]): " ldap_user
+    echo ""
+    read -t 30 -p "Enter ldap password (default ldap password: [${default_password}]): " ldap_password
+    echo ""
+else
+    # 手動模式：無超時限制，一直等待使用者輸入
+    read -p "Enter ldap server IP address (default ldap ip addr: [${default_ip}]): " allowed_ip
+    allowed_ip=${allowed_ip:-$default_ip}
+    echo ""
+    read -p "Enter ldap user (default ldap user: [${default_user}]): " ldap_user
+    echo ""
+    read -p "Enter ldap password (default ldap password: [${default_password}]): " ldap_password
+    echo ""
+fi
 
 echo "User: ${ldap_user:-$default_user}"
 cat << EOF > $HOME/keystone.trustedcloud.conf

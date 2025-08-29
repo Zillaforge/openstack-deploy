@@ -30,7 +30,6 @@ else
   randomized_ips=($(printf '%s\n' "${available_ips[@]}" | sort -R))
 fi
 
-echo $randomized_ips
 
 # 隨機檢查 IP
 for ip in "${randomized_ips[@]}"; do
@@ -39,23 +38,32 @@ for ip in "${randomized_ips[@]}"; do
   ping -c1 -W1 $candidate &> /dev/null
   if [ $? -ne 0 ]; then
     echo -e "${GREEN} found unused ip address: $candidate ${ENDCOLOR}"
-    while true; do
-      read -p "Do you want to use $candidate as VIP? (y/n): " answer
-      case "$answer" in
-        [Yy]* )
-          VIP=$candidate
-          echo -e "${GREEN} Using VIP: $VIP ${ENDCOLOR}"
-          break 2
-          ;;
-        [Nn]* )
-          echo "Skipping $candidate, looking for next available IP..."
-          break
-          ;;
-        * )
-          echo "Invalid input. Please enter 'y' or 'n'."
-          ;;
-      esac
-    done
+    
+    # 檢查是否啟用自動部署模式
+    if [ "$ENABLE_AUTO_DEPLOY_MODE" = "true" ]; then
+      VIP=$candidate
+      echo -e "${GREEN} Auto deploy mode enabled, using VIP: $VIP ${ENDCOLOR}"
+      break
+    else
+      # 手動確認模式
+      while true; do
+        read -p "Do you want to use $candidate as VIP? (y/n): " answer
+        case "$answer" in
+          [Yy]* )
+            VIP=$candidate
+            echo -e "${GREEN} Using VIP: $VIP ${ENDCOLOR}"
+            break 2
+            ;;
+          [Nn]* )
+            echo "Skipping $candidate, looking for next available IP..."
+            break
+            ;;
+          * )
+            echo "Invalid input. Please enter 'y' or 'n'."
+            ;;
+        esac
+      done
+    fi
   fi
 done
 
@@ -65,7 +73,10 @@ if [ -z "$VIP" ]; then
   exit 1
 fi
 
-echo -e "${GREEN} install necessery package ${ENDCOLOR}"
+
+exit 0
+
+echo -e "${GREEN} install necessary package ${ENDCOLOR}"
 sudo apt update -y
 sudo apt install git python3-dev libffi-dev gcc libssl-dev dnsmasq-base highlight nfs-common -y
 sudo apt install build-essential libdbus-glib-1-dev libgirepository1.0-dev -y
@@ -169,10 +180,20 @@ echo -e "${GREEN} Check if openstack is accessible ${ENDCOLOR}"
 bash ./scripts/openstack_health_check.sh 
 
 while true; do
-    read -t 30 -p "Do you want to set up Keystone LDAP? (y/n): " answer
-    if [ -z "$answer" ]; then
-        answer="n"
+    # 根據模式決定是否有超時限制
+    if [ "$ENABLE_AUTO_DEPLOY_MODE" = "true" ]; then
+        # 自動模式：最多等30秒，超時預設為n
+        read -t 30 -p "Do you want to set up Keystone LDAP? (y/n): " answer
+        if [ -z "$answer" ]; then
+            answer="n"
+            echo -e "\n${GREEN} Auto deploy mode: timeout reached, skipping Keystone LDAP setup. ${ENDCOLOR}"
+        fi
+    else
+        # 手動模式：無超時限制，一直等待使用者輸入
+        read -p "Do you want to set up Keystone LDAP? (y/n): " answer
     fi
+    
+    # 處理使用者輸入
     case "$answer" in
         [Yy]* )
             echo "Setting up Keystone LDAP..."

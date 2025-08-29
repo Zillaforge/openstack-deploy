@@ -74,8 +74,6 @@ if [ -z "$VIP" ]; then
 fi
 
 
-exit 0
-
 echo -e "${GREEN} install necessary package ${ENDCOLOR}"
 sudo apt update -y
 sudo apt install git python3-dev libffi-dev gcc libssl-dev dnsmasq-base highlight nfs-common -y

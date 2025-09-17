@@ -4,6 +4,7 @@ GREEN="\e[32m"
 ENDCOLOR="\e[0m"
 export NIC=$(ip -o -4 route show to default | awk '{print $5}')
 export ADDR=$(ip -o -4 addr show dev $NIC | awk '$3 == "inet" {print $4}' | cut -d/ -f1)
+export EXTERNAL_IP=$(curl -s ifconfig.me)
 
 
 echo -e "${GREEN} Find unuse IP for Haproxy VIP ${ENDCOLOR}"
@@ -144,6 +145,9 @@ sed -i 's|^#enable_cinder_backup: "yes"$|enable_cinder_backup: "no"|' /etc/kolla
 sed -i 's|^#enable_cinder_backend_nfs: "no"$|enable_cinder_backend_nfs: "yes"|' /etc/kolla/globals.yml
 sed -i 's|^#enable_cinder: "no"$|enable_cinder: "yes"|' /etc/kolla/globals.yml
 sed -i 's|^#enable_neutron_provider_networks: "no"$|enable_neutron_provider_networks: "yes"|' /etc/kolla/globals.yml
+sed -i "s|^#kolla_external_vip_address: \"{{ kolla_internal_vip_address }}\"|kolla_external_vip_address: \"$EXTERNAL_IP\"|" /etc/kolla/globals.yml
+sed -i 's|^#horizon_port: 80|horizon_port: 8080|' /etc/kolla/globals.yml
+sed -i 's|^#horizon_tls_port: 443|horizon_tls_port: 8443|' /etc/kolla/globals.yml
 echo "run bootstrap script"
 kolla-ansible bootstrap-server -i $HOME/all-in-one 
 echo "deploy nfs-server "

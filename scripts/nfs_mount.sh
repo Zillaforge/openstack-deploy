@@ -53,5 +53,5 @@ sudo docker run -d --privileged --restart=always --network=host --name nfs-serve
 -v /mnt/nfs:/nfs \
 -e NFS_EXPORT_DIR_1=/nfs \
 -e NFS_EXPORT_DOMAIN_1=\* \
--e NFS_EXPORT_OPTIONS_1=rw,insecure,no_subtree_check,no_root_squash,fsid=1 \
+-e NFS_EXPORT_OPTIONS_1=rw,sync,no_root_squash \
 fuzzle/docker-nfs-server:latest

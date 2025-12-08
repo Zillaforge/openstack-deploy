@@ -151,7 +151,7 @@ sed -i 's|^#horizon_tls_port: 443|horizon_tls_port: 8443|' /etc/kolla/globals.ym
 echo "run bootstrap script"
 kolla-ansible bootstrap-server -i $HOME/all-in-one 
 echo "deploy nfs-server "
-sudo bash ./scripts/nfs_mount.sh
+sudo bash ./scripts/nfs_setup.sh
 echo "run precheck script"
 kolla-ansible prechecks -i $HOME/all-in-one
 echo "generate octavia certificate"

@@ -106,13 +106,12 @@ echo -e "${GREEN} generate password ${ENDCOLOR}"
 kolla-genpwd
 
 echo -e "${GREEN} create fake interface for openstack external network ${ENDCOLOR}"
-sudo ip link add dummy1 type bridge
-sudo ip link set dummy1 up
-sudo ip addr add 10.0.2.2/24 dev dummy1
-sudo ip link add veth-ovs type veth peer name veth-br
-sudo ip link set veth-br master dummy1
-sudo ip link set veth-ovs up
-sudo ip link set veth-br up
+sudo cp ./scripts/setup-interfaces.sh       /usr/local/bin/setup-interfaces.sh
+sudo chmod +x /usr/local/bin/setup-interfaces.sh
+sudo cp ./scripts/setup-interfaces.service  /etc/systemd/system/setup-interfaces.service
+sudo systemctl daemon-reload
+sudo systemctl enable setup-interfaces.service
+sudo systemctl start  setup-interfaces.service
 
 echo -e "${GREEN} generate ml2_conf.ini ${ENDCOLOR}"
 bash ./config/ml2_conf.sh

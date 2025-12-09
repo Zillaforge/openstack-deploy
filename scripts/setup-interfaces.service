@@ -1,0 +1,11 @@
+[Unit]
+Description=Setup custom network interfaces
+After=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/setup-interfaces.sh
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

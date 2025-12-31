@@ -53,6 +53,12 @@ group_allow_create = True
 group_allow_update = True
 group_allow_delete = True
 
+user_enabled_emulation=True
+user_enabled_emulation_use_group_config=True
+user_enabled_emulation_dn=cn=14735dfa-5553-46cc-b4bd-405e711b223f,ou=projects,dc=cloud-infra,dc=asus,dc=com,dc=tw
+group_member_attribute=memberUid
+group_members_are_ids=True
+
 [identity]
 driver=ldap
 EOF

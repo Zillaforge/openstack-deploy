@@ -119,6 +119,8 @@ echo -e "${GREEN} generate neutron config ${ENDCOLOR}"
 bash ./config/neutron_conf.sh
 echo -e "${GREEN} generate nova config ${ENDCOLOR}"
 bash ./config/nova_conf.sh
+echo -e "${GREEN} generate cinder config ${ENDCOLOR}"
+bash ./config/cinder_conf.sh
 echo -e "${GREEN} generate nfs config for cinder ${ENDCOLOR}"
 bash ./config/cinder_nfs.sh
 echo -e "${GREEN} generate keystone config for ldap service ${ENDCOLOR}"
@@ -131,7 +133,7 @@ cat << EOF > ./kolla_deploy.sh
 source $HOME/venv/bin/activate
 
 echo "copy config"
-mv $HOME/neutron.conf $HOME/nova.conf $HOME/nfs_shares $HOME/octavia.conf /etc/kolla/config
+mv $HOME/neutron.conf $HOME/nova.conf $HOME/cinder.conf $HOME/nfs_shares $HOME/octavia.conf /etc/kolla/config
 mv $HOME/ml2_conf.ini /etc/kolla/config/neutron/
 mv $HOME/keystone.trustedcloud.conf /etc/kolla/config/keystone/domains/
 echo "enable service in global.yml"

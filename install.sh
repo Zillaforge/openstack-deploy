@@ -89,7 +89,8 @@ echo -e "${GREEN} install python package ${ENDCOLOR}"
 pip install  'ansible-core>=2.16,<2.17.99'
 pip install  dbus-python
 pip install  docker
-pip install   git+https://opendev.org/openstack/kolla-ansible@stable/2025.1
+pip install  git+https://opendev.org/openstack/kolla-ansible@stable/2025.1
+pip install  git+https://github.com/openstack/python-manilaclient@stable/2025.1
 
 echo -e "${GREEN} install kolla-ansible dependencies ${ENDCOLOR}"
 kolla-ansible install-deps
@@ -127,13 +128,18 @@ echo -e "${GREEN} generate keystone config for ldap service ${ENDCOLOR}"
 bash ./config/keystone_conf.sh
 echo -e "${GREEN} generate octavia config ${ENDCOLOR}"
 bash ./config/octavia_conf.sh
+echo -e "${GREEN} generate manila config ${ENDCOLOR}"
+bash ./config/manila_conf.sh
+echo -e "${GREEN} generate manila share config ${ENDCOLOR}"
+bash ./config/manila_share_conf.sh
+
 echo "generate install script"
 cat << EOF > ./kolla_deploy.sh
 #!/bin/bash
 source $HOME/venv/bin/activate
 
 echo "copy config"
-mv $HOME/neutron.conf $HOME/nova.conf $HOME/cinder.conf $HOME/nfs_shares $HOME/octavia.conf /etc/kolla/config
+mv $HOME/neutron.conf $HOME/nova.conf $HOME/cinder.conf $HOME/nfs_shares $HOME/octavia.conf $HOME/manila.conf $HOME/manila-share.conf /etc/kolla/config
 mv $HOME/ml2_conf.ini /etc/kolla/config/neutron/
 mv $HOME/keystone.trustedcloud.conf /etc/kolla/config/keystone/domains/
 echo "enable service in global.yml"
@@ -149,6 +155,8 @@ sed -i 's|^#enable_neutron_provider_networks: "no"$|enable_neutron_provider_netw
 sed -i "s|^#kolla_external_vip_address: \"{{ kolla_internal_vip_address }}\"|kolla_external_vip_address: \"$EXTERNAL_IP\"|" /etc/kolla/globals.yml
 sed -i 's|^#horizon_port: 80|horizon_port: 8080|' /etc/kolla/globals.yml
 sed -i 's|^#horizon_tls_port: 443|horizon_tls_port: 8443|' /etc/kolla/globals.yml
+sed -i 's|^#enable_manila: "no"$|enable_manila: "yes"|' /etc/kolla/globals.yml
+sed -i 's|^#enable_manila_backend_generic: "no"$|enable_manila_backend_generic: "yes"|' /etc/kolla/globals.yml
 echo "run bootstrap script"
 kolla-ansible bootstrap-server -i $HOME/all-in-one 
 echo "deploy nfs-server "

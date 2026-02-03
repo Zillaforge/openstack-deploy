@@ -238,3 +238,5 @@ echo -e "${GREEN} to use openstack-cli you will need to  export the path to your
 echo -e "source $HOME/venv/bin/activate\nexport OS_CLIENT_CONFIG_FILE=/etc/kolla/clouds.yaml\nexport OS_CLOUD=kolla-admin"
 
 sudo rm ./kolla_deploy.sh
+
+sudo docker exec openvswitch_vswitchd ovs-vsctl add-port br-ex v-lbaas-vlan tag=1718

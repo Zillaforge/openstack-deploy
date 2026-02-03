@@ -91,6 +91,7 @@ pip install  dbus-python
 pip install  docker
 pip install  git+https://opendev.org/openstack/kolla-ansible@stable/2025.1
 pip install  git+https://github.com/openstack/python-manilaclient@stable/2025.1
+pip install  git+https://github.com/openstack/python-octaviaclient@stable/2025.1
 
 echo -e "${GREEN} install kolla-ansible dependencies ${ENDCOLOR}"
 kolla-ansible install-deps
@@ -113,6 +114,15 @@ sudo cp ./scripts/setup-interfaces.service  /etc/systemd/system/setup-interfaces
 sudo systemctl daemon-reload
 sudo systemctl enable setup-interfaces.service
 sudo systemctl start  setup-interfaces.service
+
+# Install Octavia LB management interface
+echo -e "${GREEN} create veth interface for lbaas ${ENDCOLOR}"
+sudo cp ./scripts/veth-lbaas.sh       /usr/local/bin/veth-lbaas.sh
+sudo chmod +x /usr/local/bin/veth-lbaas.sh
+sudo cp ./scripts/veth-lbaas.service  /etc/systemd/system/veth-lbaas.service
+sudo systemctl daemon-reload
+sudo systemctl enable veth-lbaas.service
+sudo systemctl start  veth-lbaas.service
 
 echo -e "${GREEN} generate ml2_conf.ini ${ENDCOLOR}"
 bash ./config/ml2_conf.sh
@@ -157,6 +167,7 @@ sed -i 's|^#horizon_port: 80|horizon_port: 8080|' /etc/kolla/globals.yml
 sed -i 's|^#horizon_tls_port: 443|horizon_tls_port: 8443|' /etc/kolla/globals.yml
 sed -i 's|^#enable_manila: "no"$|enable_manila: "yes"|' /etc/kolla/globals.yml
 sed -i 's|^#enable_manila_backend_generic: "no"$|enable_manila_backend_generic: "yes"|' /etc/kolla/globals.yml
+sed -i 's|^#octavia_network_interface: "{{ api_interface }}"$|octavia_network_interface: v-lbaas|' /etc/kolla/globals.yml
 echo "run bootstrap script"
 kolla-ansible bootstrap-server -i $HOME/all-in-one 
 echo "deploy nfs-server "
@@ -227,3 +238,5 @@ echo -e "${GREEN} to use openstack-cli you will need to  export the path to your
 echo -e "source $HOME/venv/bin/activate\nexport OS_CLIENT_CONFIG_FILE=/etc/kolla/clouds.yaml\nexport OS_CLOUD=kolla-admin"
 
 sudo rm ./kolla_deploy.sh
+
+sudo docker exec openvswitch_vswitchd ovs-vsctl add-port br-ex v-lbaas-vlan tag=1718

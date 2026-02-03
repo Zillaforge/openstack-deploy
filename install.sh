@@ -91,6 +91,7 @@ pip install  dbus-python
 pip install  docker
 pip install  git+https://opendev.org/openstack/kolla-ansible@stable/2025.1
 pip install  git+https://github.com/openstack/python-manilaclient@stable/2025.1
+pip install  git+https://github.com/openstack/python-octaviaclient@stable/2025.1
 
 echo -e "${GREEN} install kolla-ansible dependencies ${ENDCOLOR}"
 kolla-ansible install-deps

@@ -1,6 +1,6 @@
 cat << EOF > $HOME/octavia.conf
 [nova]
-availability_zone = default
+availability_zone = nova
 
 [database]
 max_overflow = 1000

@@ -803,12 +803,12 @@ octavia_auto_configure: yes
 # - ephemeral (optional)
 # - swap (optional)
 # - extra_specs (optional)
-#octavia_amp_flavor:
-#  name: "amphora"
-#  is_public: no
-#  vcpus: 1
-#  ram: 1024
-#  disk: 5
+octavia_amp_flavor:
+ name: "amphora"
+ is_public: no
+ vcpus: 1
+ ram: 1024
+ disk: 5
 
 # Octavia security groups. lb-mgmt-sec-grp is for amphorae.
 #octavia_amp_security_groups:
@@ -850,7 +850,6 @@ octavia_amp_network:
   provider_network_type: vlan
   provider_physical_network: physnet1
   provider_segmentation_id: 1718
-  mtu: 9000
   subnet:
     name: lb-mgmt-subnet
     cidr: "{{ octavia_amp_network_cidr }}"
@@ -872,6 +871,8 @@ octavia_loadbalancer_topology: "ACTIVE_STANDBY"
 #octavia_amp_boot_network_list:
 #octavia_amp_secgroup_list:
 #octavia_amp_flavor_id:
+
+octavia_certs_client_expiry: 3650
 
 ####################
 # Corosync options

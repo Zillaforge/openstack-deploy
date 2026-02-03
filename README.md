@@ -6,7 +6,7 @@ cd openstack-deploy
 ./install.sh
 ```
 
-## 網路架構說明
+## External Network
 
 此腳本設計用於在單一 VM 中部署一個 All-in-One 的 OpenStack 環境。在這種情境下，我們需要為 OpenStack 的虛擬機 (VMs) 提供一個可用的外部網路 (External Network)，以便它們可以透過 Floating IP 與外界溝通。
 
@@ -65,4 +65,54 @@ cd openstack-deploy
 ```
 
 透過這層虛擬的串接，OpenStack 的外部網路就成功地建立起來，並且與主機的管理網路完全隔離。這使得我們可以在 Neutron 中建立外部網路、分配 Floating IP，並讓 OpenStack 內的虛擬機認為它們正連接到一個真實的外部世界，而所有的網路流量實際上都只在這台主機 VM 內部流動。
+
+## Octavia Management Network
+
+### 解決方案：虛擬網路介面
+
+建立一對用於 Octavia 管理平面的 veth pair：`v-lbaas` 與 `v-lbaas-vlan`。
+
+1. **建立 veth pair (`v-lbaas` & `v-lbaas-vlan`)**:
+    - `v-lbaas`：此端在主機上，並指定一個IP。
+    - `v-lbaas-vlan`：此端設定成 OVS bridge 上 的br-ex port 帶 VLAN tag 的埠，讓主機可以與 Octavia 管理網路通訊並區隔流量。
+
+2. **掛載到br-ex**:
+    - `docker exec openvswitch_vswitchd ovs-vsctl add-port br-ex v-lbaas-vlan tag=1718`
+
+### 運作原理
+
+Octavia 管理網路的串接流程如下：
+
+```ascii
++------------------------------- Host VM --------------------------------+
+|                                                                        |
+|  (Host namespace / Debug access)                                       |
+|    +---------------------+                                             |
+|    | v-lbaas              |  <-- assign an IP on Octavia mgmt subnet   |
+|    +----------+----------+                                             |
+|               ||                                                       |
+|               ||  veth pair (v-lbaas <-> v-lbaas-vlan)                 |
+|               ||                                                       |
+|    +----------+-------------------------------+                        |
+|    | OVS br-ex (openvswitch)                  |                        |
+|    |   port: v-lbaas-vlan   (tag=1718)        |                        |
+|    +----------+-------------------------------+                        |
+|               |  VLAN 1718 (Octavia Mgmt Network)                      |
++---------------|--------------------------------------------------------+
+                v
++--------------------------- OpenStack (Neutron/OVN) ---------------------+
+|  Octavia Management Network (mapped to VLAN 1718 on br-ex)              |
+|                                                                         |
+|    +---------------------------+                                        |
+|    | Amphora (LB VM)           |                                        |
+|    | mgmt port on mgmt network |                                        |
+|    +---------------------------+                                        |
+|                                                                         |
++-------------------------------------------------------------------------+
+```
+
+
+如此一來，Octavia 的管理網路就能在單一 VM 環境中被模擬並隔離，與前述 `veth-ovs` / `veth-br` 的概念相同，但專用於負載平衡器的管理平面。
+
+
 
